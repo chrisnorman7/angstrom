@@ -4,6 +4,7 @@
 
 - Publish to GitHub.
 - Update package description.
+- Added more docs.
 
 ## 0.0.1
 
