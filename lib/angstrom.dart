@@ -1,3 +1,6 @@
+/// The Angstrom game engine.
+///
+/// This package is best used with [angstrom_editor](https://pub.dev/packages/angstrom_editor).
 library;
 
 export 'src/angstrom_engine.dart';
