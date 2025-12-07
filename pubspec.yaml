@@ -1,6 +1,6 @@
 name: angstrom
-description: "A package for rapid prototyping of game worlds with a streaming API."
 version: 0.0.2
+description: "A package for rapid prototyping of game worlds with a streaming API."
 homepage: https://github.com/chrisnorman7/angstrom
 
 environment:
