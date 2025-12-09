@@ -8,16 +8,24 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:stts/stts.dart';
 
-/// The type of a function which examines an object.
-typedef ExamineObjectCallback =
-    void Function(
-      RoomObjectReference objectReference,
-      AngstromEventHandlerState state,
-    );
-
-/// The type of a function which will be used to handle [NoRoomObjects] events.
-typedef NoRoomObjectsCallback =
-    void Function(NoRoomObjects event, AngstromEventHandlerState state);
+/// The default [GetSound] function.
+Sound defaultGetSound({
+  required final SoundReference soundReference,
+  required final bool destroy,
+  final LoadMode loadMode = LoadMode.memory,
+  final bool looping = false,
+  final Duration loopingStart = Duration.zero,
+  final bool paused = false,
+  final SoundPosition position = unpanned,
+  final double? volume,
+  final double relativePlaySpeed = 1.0,
+}) => soundReference.path.asSound(
+  destroy: destroy,
+  loadMode: loadMode,
+  looping: looping,
+  position: position,
+  volume: volume ?? soundReference.volume,
+);
 
 /// The main screen of the app.
 class AngstromEventHandler extends StatefulWidget {
@@ -28,6 +36,7 @@ class AngstromEventHandler extends StatefulWidget {
     required this.wallFactor,
     required this.onExamineObject,
     required this.onNoRoomObjects,
+    required this.getSound,
     required this.error,
     required this.child,
     super.key,
@@ -48,6 +57,9 @@ class AngstromEventHandler extends StatefulWidget {
 
   /// The function to call to handle the [NoRoomObjects] event.
   final NoRoomObjectsCallback onNoRoomObjects;
+
+  /// The function to call to get a sound.
+  final GetSound getSound;
 
   /// The widget to show errors.
   final ErrorWidgetCallback error;
@@ -157,11 +169,11 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         if (handle == null) {
           late final AudioSource source;
           final h = await context.playSound(
-            ambiance.path.asSound(
+            widget.getSound(
+              soundReference: ambiance.path.asSoundReference(volume: newVolume),
               destroy: false,
               loadMode: LoadMode.disk,
               looping: true,
-              volume: newVolume,
               position: SoundPosition3d(
                 coordinates.x.toDouble(),
                 0,
@@ -267,15 +279,13 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         unawaited(updateRoomObjectAmbiances());
         break;
       case PlayerFootstepSound():
+        final soundReference = event.footstepSounds.randomElement();
+        final sound = widget.getSound(
+          soundReference: soundReference.asSoundReference(),
+          destroy: true,
+        );
         if (mounted) {
-          unawaited(
-            context.playRandomSound(
-              event.footstepSounds.asSoundList(
-                destroy: true,
-                volume: event.volume,
-              ),
-            ),
-          );
+          unawaited(context.playSound(sound));
         }
         break;
       case PlayMusic():
@@ -284,14 +294,14 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         if (reference == null) {
           await oldMusic?.handle?.stop(fadeOutTime: widget.engine.musicFadeOut);
         } else if (oldMusic == null) {
-          final handle = await context.playSound(
-            reference.path.asSound(
-              destroy: false,
-              loadMode: LoadMode.disk,
-              looping: true,
-              volume: 0,
-            ),
+          final sound = widget.getSound(
+            soundReference: reference,
+            destroy: false,
+            loadMode: LoadMode.disk,
+            looping: true,
+            volume: 0,
           );
+          final handle = await context.playSound(sound);
           if (mounted) {
             _music = PlayingSound(reference: reference, handle: handle);
             handle.volume.fade(reference.volume, widget.engine.musicFadeIn);
@@ -315,7 +325,8 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
               oldMusic.handle.stop(fadeOutTime: widget.engine.musicFadeOut),
             );
             final handle = await context.playSound(
-              reference.path.asSound(
+              widget.getSound(
+                soundReference: reference,
                 destroy: false,
                 loadMode: LoadMode.disk,
                 looping: true,
@@ -338,10 +349,7 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         final soundReference = event.soundReference;
         unawaited(
           context.playSound(
-            soundReference.path.asSound(
-              destroy: true,
-              volume: soundReference.volume,
-            ),
+            widget.getSound(soundReference: soundReference, destroy: true),
           ),
         );
         break;
@@ -364,11 +372,11 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
           _roomSurfaceAmbiance = null;
         } else if (oldAmbiance == null) {
           final handle = await context.playSound(
-            ambiance.path.asSound(
+            widget.getSound(
+              soundReference: ambiance.path.asSoundReference(volume: 0.0),
               destroy: false,
               loadMode: LoadMode.disk,
               looping: true,
-              volume: 0.0,
             ),
           );
           handle.volume.fade(ambiance.volume, widget.engine.musicFadeIn);
@@ -392,11 +400,11 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
               oldAmbiance.handle.stop(fadeOutTime: widget.engine.musicFadeOut),
             );
             final handle = await context.playSound(
-              ambiance.path.asSound(
+              widget.getSound(
+                soundReference: ambiance.path.asSoundReference(volume: 0.0),
                 destroy: false,
                 loadMode: LoadMode.disk,
                 looping: true,
-                volume: 0.0,
               ),
             );
             handle.volume.fade(ambiance.volume, widget.engine.musicFadeIn);
@@ -427,19 +435,21 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
           final walls = _countOccludingWalls(playerCoordinates, point);
           late final AudioSource source;
           final handle = await context.playSound(
-            reference.path.asSound(
+            widget.getSound(
+              soundReference: reference.path.asSoundReference(
+                volume: occludedVolume(
+                  distance: distance,
+                  fullVolume: reference.volume,
+                  occludingWalls: walls,
+                  maxDistance: event.maxDistance,
+                ),
+              ),
               destroy: true,
               position: SoundPosition3d(
                 event.x,
                 event.z, // Take into account default listener orientation.
                 event.y,
                 // Take into account the default listener orientation.
-              ),
-              volume: occludedVolume(
-                distance: distance,
-                fullVolume: reference.volume,
-                occludingWalls: walls,
-                maxDistance: event.maxDistance,
               ),
             ),
             onSourceLoad: (final s) {

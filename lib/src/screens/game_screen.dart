@@ -58,6 +58,7 @@ class GameScreen extends StatelessWidget {
     this.getExamineObjectDistance = defaultGetExamineObjectDistance,
     this.getExamineObjectOrdering = defaultGetExamineObjectOrdering,
     this.onNoRoomObjects = defaultNoRoomObjects,
+    this.getSound = defaultGetSound,
     super.key,
   });
 
@@ -86,6 +87,9 @@ class GameScreen extends StatelessWidget {
   /// The function to call to handle the [NoRoomObjects] event.
   final NoRoomObjectsCallback onNoRoomObjects;
 
+  /// The function to call to get a sound.
+  final GetSound getSound;
+
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
@@ -98,6 +102,7 @@ class GameScreen extends StatelessWidget {
         wallFactor: wallFactor,
         onExamineObject: onExamineObject,
         onNoRoomObjects: onNoRoomObjects,
+        getSound: getSound,
         error: ErrorListView.withPositional,
         child: EngineTicker(
           engine: engine,

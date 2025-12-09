@@ -4,6 +4,7 @@
     "math",
     "soloud",
     "stts",
-    "TTS"
+    "TTS",
+    "unpanned"
   ]
 }
