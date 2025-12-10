@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Bug fixes.
+- Add ID's to `RoomObject`s.
+
 ## 0.1.0
 
 - Enforce providing a `getSound` argument.
