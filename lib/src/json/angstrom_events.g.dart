@@ -153,3 +153,13 @@ RoomId _$RoomIdFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RoomIdToJson(RoomId instance) => <String, dynamic>{
   'roomId': instance.roomId,
 };
+
+MoveRoomObject _$MoveRoomObjectFromJson(Map<String, dynamic> json) =>
+    MoveRoomObject(
+      id: json['id'] as String,
+      x: (json['x'] as num).toInt(),
+      y: (json['y'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$MoveRoomObjectToJson(MoveRoomObject instance) =>
+    <String, dynamic>{'id': instance.id, 'x': instance.x, 'y': instance.y};

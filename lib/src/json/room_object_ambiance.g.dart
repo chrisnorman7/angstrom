@@ -8,17 +8,19 @@ part of 'room_object_ambiance.dart';
 
 RoomObjectAmbiance _$RoomObjectAmbianceFromJson(Map<String, dynamic> json) =>
     RoomObjectAmbiance(
-      path: json['path'] as String,
+      id: json['id'] as String,
+      soundReference: SoundReference.fromJson(
+        json['soundReference'] as Map<String, dynamic>,
+      ),
       x: (json['x'] as num).toInt(),
       y: (json['y'] as num).toInt(),
-      volume: (json['volume'] as num).toDouble(),
       ambianceMaxDistance: (json['ambianceMaxDistance'] as num).toInt(),
     );
 
 Map<String, dynamic> _$RoomObjectAmbianceToJson(RoomObjectAmbiance instance) =>
     <String, dynamic>{
-      'path': instance.path,
-      'volume': instance.volume,
+      'id': instance.id,
+      'soundReference': instance.soundReference,
       'ambianceMaxDistance': instance.ambianceMaxDistance,
       'x': instance.x,
       'y': instance.y,

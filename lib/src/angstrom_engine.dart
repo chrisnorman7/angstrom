@@ -281,10 +281,10 @@ abstract class AngstromEngine {
                 .map((final object) {
                   final ambiance = object.ambiance!;
                   return RoomObjectAmbiance(
-                    path: ambiance.path,
+                    id: object.id,
+                    soundReference: ambiance,
                     x: object.coordinates.x,
                     y: object.coordinates.y,
-                    volume: ambiance.volume,
                     ambianceMaxDistance: object.ambianceMaxDistance,
                   );
                 }),
@@ -398,11 +398,12 @@ abstract class AngstromEngine {
     required final RoomObjectOrdering ordering,
   }) {
     final objects =
-        room.objects
-            .where(
-              (final object) =>
-                  startCoordinates.distanceTo(object.coordinates) <= distance,
-            )
+        _roomObjects.entries
+            .where((final entry) {
+              final coordinates = entry.key;
+              return startCoordinates.distanceTo(coordinates) <= distance;
+            })
+            .map((final entry) => entry.value)
             .toList()
           ..sort((final a, final b) {
             switch (ordering) {
@@ -457,7 +458,7 @@ abstract class AngstromEngine {
   );
 
   /// Return the [RoomObject] with the given [id].
-  RoomObject? getObject(final String id) {
+  RoomObject? findRoomObject(final String id) {
     for (final object in _room!.objects) {
       if (object.id == id) {
         return object;
@@ -467,7 +468,7 @@ abstract class AngstromEngine {
   }
 
   /// Return the coordinates for the given [object].
-  Point<int> getObjectCoordinates(final RoomObject object) {
+  Point<int> findObjectCoordinates(final RoomObject object) {
     for (final MapEntry(key: coordinates, value: roomObject)
         in _roomObjects.entries) {
       if (roomObject == object) {
@@ -475,5 +476,21 @@ abstract class AngstromEngine {
       }
     }
     throw StateError('Could not find object ${object.name} in $room.');
+  }
+
+  /// Move [object] to the [coordinates].
+  void moveRoomObject(final RoomObject object, final Point<int> coordinates) {
+    final oldCoordinates = findObjectCoordinates(object);
+    if (oldCoordinates == coordinates) {
+      return; // Nothing to do.
+    }
+    if (oldCoordinates == playerCoordinates) {
+      object.onLeave?.call(this);
+    }
+    _roomObjects.remove(oldCoordinates);
+    _roomObjects[coordinates] = object;
+    if (coordinates == playerCoordinates) {
+      object.onApproach?.call(this);
+    }
   }
 }

@@ -4,6 +4,9 @@
 
 - Bug fixes.
 - Add ID's to `RoomObject`s.
+- Added `findRoomObject` and `findObjectCoordinates` to `AngstromEngine`.
+- Added the `AngstromEventHandler.updateSound` method for updating sound volumes and filters.
+- Added the ability to move room objects by calling `AngstromEngine.moveRoomObject`.
 
 ## 0.1.0
 

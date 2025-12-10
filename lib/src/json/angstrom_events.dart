@@ -239,6 +239,10 @@ class Play3dSound extends AngstromEvent {
   /// The z coordinate of the sound.
   final double z;
 
+  /// The [x] and [y] coordinates as a [Point].
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Point<int> get coordinates => Point(x.floor(), y.floor());
+
   /// The maximum distance at which this sound will be audible.
   final int maxDistance;
 
@@ -306,4 +310,31 @@ class RoomId extends AngstromEvent {
 
   /// Convert an instance to JSON.
   Map<String, dynamic> toJson() => _$RoomIdToJson(this);
+}
+
+/// A [RoomObject] with the given [id] moved to [coordinates].
+@JsonSerializable()
+class MoveRoomObject extends AngstromEvent {
+  /// Create an instance.
+  const MoveRoomObject({required this.id, required this.x, required this.y});
+
+  /// Create an instance from a JSON object.
+  factory MoveRoomObject.fromJson(final Map<String, dynamic> json) =>
+      _$MoveRoomObjectFromJson(json);
+
+  /// The ID of the object which moved.
+  final String id;
+
+  /// The new x coordinate.
+  final int x;
+
+  /// The new y coordinate.
+  final int y;
+
+  /// The new coordinates of the object.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Point<int> get coordinates => Point(x, y);
+
+  /// Convert an instance to JSON.
+  Map<String, dynamic> toJson() => _$MoveRoomObjectToJson(this);
 }

@@ -152,6 +152,7 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         break;
       }
       final ambiance = _roomObjectAmbiances[i];
+      final soundReference = ambiance.soundReference;
       final handle = _roomObjectAmbianceSoundHandles[i];
       final coordinates = ambiance.coordinates;
       final distance = playerCoordinates.distanceTo(coordinates);
@@ -159,18 +160,11 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         unawaited(handle?.handle?.stop());
         _roomObjectAmbianceSoundHandles[i] = null;
       } else {
-        final walls = _countOccludingWalls(playerCoordinates, coordinates);
-        final newVolume = occludedVolume(
-          distance: distance,
-          fullVolume: ambiance.volume,
-          occludingWalls: walls,
-          maxDistance: ambiance.ambianceMaxDistance,
-        );
         if (handle == null) {
           late final AudioSource source;
           final h = await context.playSound(
             widget.getSound(
-              soundReference: ambiance.path.asSoundReference(volume: newVolume),
+              soundReference: soundReference.path.asSoundReference(volume: 0.0),
               destroy: false,
               loadMode: LoadMode.disk,
               looping: true,
@@ -185,7 +179,13 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
             },
           );
           h.setMinMaxDistance(0, ambiance.ambianceMaxDistance.toDouble());
-          maybeFilterSource(source: source, handle: h, numberOfWalls: walls);
+          updateSound(
+            source: source,
+            handle: h,
+            soundCoordinates: coordinates,
+            volume: ambiance.soundReference.volume,
+            maxDistance: ambiance.ambianceMaxDistance,
+          );
           if (mounted && _roomObjectAmbiancesLastUpdate == timestamp) {
             unawaited(_roomObjectAmbianceSoundHandles[i]?.handle?.stop());
             _roomObjectAmbianceSoundHandles[i] = AudioSourceAndHandle(
@@ -196,11 +196,12 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
             return unawaited(h.stop());
           }
         } else {
-          handle.handle.volume.fade(newVolume, _moveInterval);
-          maybeFilterSource(
+          updateSound(
             source: handle.source,
             handle: handle.handle,
-            numberOfWalls: walls,
+            soundCoordinates: coordinates,
+            volume: ambiance.soundReference.volume,
+            maxDistance: ambiance.ambianceMaxDistance,
           );
         }
       }
@@ -437,7 +438,7 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
           final handle = await context.playSound(
             widget.getSound(
               soundReference: reference.path.asSoundReference(
-                volume: occludedVolume(
+                volume: _occludedVolume(
                   distance: distance,
                   fullVolume: reference.volume,
                   occludingWalls: walls,
@@ -448,18 +449,19 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
               position: SoundPosition3d(
                 event.x,
                 event.z, // Take into account default listener orientation.
-                event.y,
-                // Take into account the default listener orientation.
+                event.y, // Take into account the default listener orientation.
               ),
             ),
             onSourceLoad: (final s) {
               source = s;
             },
           );
-          maybeFilterSource(
+          updateSound(
             source: source,
             handle: handle,
-            numberOfWalls: walls,
+            soundCoordinates: event.coordinates,
+            volume: reference.volume,
+            maxDistance: event.maxDistance,
           );
         }
         break;
@@ -473,6 +475,29 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         setState(() {
           _roomId = event.roomId;
         });
+        break;
+      case MoveRoomObject():
+        for (var i = 0; i < _roomObjectAmbiances.length; i++) {
+          final oldAmbiance = _roomObjectAmbiances[i];
+          if (oldAmbiance.id == event.id) {
+            final newCoordinates = event.coordinates;
+            final handle = _roomObjectAmbianceSoundHandles[i];
+            if (handle != null) {
+              handle.handle.setSourcePosition(
+                event.x.toDouble(),
+                0,
+                event.y.toDouble(),
+              );
+              updateSound(
+                source: handle.source,
+                handle: handle.handle,
+                soundCoordinates: newCoordinates,
+                volume: oldAmbiance.soundReference.volume,
+                maxDistance: oldAmbiance.ambianceMaxDistance,
+              );
+            }
+          }
+        }
         break;
     }
   }
@@ -502,7 +527,7 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
 
   /// Return [inverseSquareVolume] after the sound has passed through
   /// [occludingWalls] walls.
-  double occludedVolume({
+  double _occludedVolume({
     required final double distance,
     required final double fullVolume,
     required final int occludingWalls,
@@ -515,6 +540,33 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
     final base = inverseSquareVolume(distance, fullVolume, maxDistance);
     final wallRolloff = pow(widget.wallAttenuation, occludingWalls).toDouble();
     return base * wallRolloff;
+  }
+
+  /// Update [source] and [handle] to take into account the distance between
+  /// [playerCoordinates] and [soundCoordinates].
+  void updateSound({
+    required final AudioSource source,
+    required final SoundHandle handle,
+    required final Point<int> soundCoordinates,
+    required final double volume,
+    required final int maxDistance,
+  }) {
+    final distance = playerCoordinates.distanceTo(soundCoordinates);
+    final numberOfWalls = _countOccludingWalls(
+      playerCoordinates,
+      soundCoordinates,
+    );
+    maybeFilterSource(
+      source: source,
+      handle: handle,
+      numberOfWalls: numberOfWalls,
+    );
+    handle.volume.value = _occludedVolume(
+      distance: distance,
+      fullVolume: volume,
+      occludingWalls: numberOfWalls,
+      maxDistance: maxDistance,
+    );
   }
 
   /// A function which returns the number of occluding walls between [a] and
