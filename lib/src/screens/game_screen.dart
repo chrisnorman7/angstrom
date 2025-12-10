@@ -59,6 +59,7 @@ class GameScreen extends StatelessWidget {
     this.getExamineObjectOrdering = defaultGetExamineObjectOrdering,
     this.onNoRoomObjects = defaultNoRoomObjects,
     this.getSound = defaultGetSound,
+    this.gameShortcutsBuilder,
     super.key,
   });
 
@@ -90,6 +91,9 @@ class GameScreen extends StatelessWidget {
   /// The function to call to get a sound.
   final GetSound getSound;
 
+  /// The function to call to get the final game shortcuts.
+  final GameShortcutsBuilder? gameShortcutsBuilder;
+
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
@@ -110,6 +114,7 @@ class GameScreen extends StatelessWidget {
             engine: engine,
             getExamineObjectDistance: getExamineObjectDistance,
             getExamineObjectOrdering: getExamineObjectOrdering,
+            gameShortcutsBuilder: gameShortcutsBuilder,
             child: Text(character.name),
           ),
         ),

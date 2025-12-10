@@ -2,6 +2,8 @@
 library;
 
 import 'package:angstrom/angstrom.dart';
+import 'package:backstreets_widgets/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart'
     show Sound, SoundPosition;
 import 'package:flutter_soloud/flutter_soloud.dart';
@@ -35,3 +37,10 @@ typedef ExamineObjectCallback =
 /// The type of a function which will be used to handle [NoRoomObjects] events.
 typedef NoRoomObjectsCallback =
     void Function(NoRoomObjects event, AngstromEventHandlerState state);
+
+/// The type of a function which modifies a [List] of [GameShortcut]s.
+typedef GameShortcutsBuilder =
+    List<GameShortcut> Function(
+      BuildContext context,
+      List<GameShortcut> shortcuts,
+    );

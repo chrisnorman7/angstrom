@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:angstrom/angstrom.dart';
+import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,7 @@ class GameControls extends StatefulWidget {
     required this.getExamineObjectDistance,
     required this.getExamineObjectOrdering,
     required this.child,
+    this.gameShortcutsBuilder,
     super.key,
   });
 
@@ -34,6 +36,9 @@ class GameControls extends StatefulWidget {
 
   /// The widget below this widget in the tree.
   final Widget child;
+
+  /// The function to call to get the final game shortcuts.
+  final GameShortcutsBuilder? gameShortcutsBuilder;
 
   /// Create state for this widget.
   @override
@@ -57,7 +62,7 @@ class GameControlsState extends State<GameControls> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final shortcuts = <GameShortcut>[
+    final defaultShortcuts = <GameShortcut>[
       GameShortcut(
         title: 'Speak current coordinates',
         shortcut: GameShortcutsShortcut.keyC,
@@ -114,6 +119,25 @@ class GameControlsState extends State<GameControls> {
         ),
       ),
     ];
-    return GameShortcuts(shortcuts: shortcuts, child: widget.child);
+    defaultShortcuts.add(
+      GameShortcut(
+        title: 'Show shortcut help',
+        shortcut: GameShortcutsShortcut.slash,
+        shiftKey: true,
+        onStart: (final innerContext) async {
+          engine.pause();
+          await innerContext.pushWidgetBuilder(
+            (_) => GameShortcutsHelpScreen(shortcuts: defaultShortcuts),
+          );
+          engine.unpause();
+        },
+      ),
+    );
+    return GameShortcuts(
+      shortcuts:
+          widget.gameShortcutsBuilder?.call(context, defaultShortcuts) ??
+          defaultShortcuts,
+      child: widget.child,
+    );
   }
 }

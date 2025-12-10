@@ -7,6 +7,7 @@
 - Added `findRoomObject` and `findObjectCoordinates` to `AngstromEngine`.
 - Added the `AngstromEventHandler.updateSound` method for updating sound volumes and filters.
 - Added the ability to move room objects by calling `AngstromEngine.moveRoomObject`.
+- Added the ability to modify the default game shortcuts by passing `gameShortcutsBuilder` to `GameScreen` or `GameShortcuts`.
 
 ## 0.1.0
 
