@@ -455,4 +455,25 @@ abstract class AngstromEngine {
     startCoordinates: playerCoordinates,
     ordering: ordering,
   );
+
+  /// Return the [RoomObject] with the given [id].
+  RoomObject? getObject(final String id) {
+    for (final object in _room!.objects) {
+      if (object.id == id) {
+        return object;
+      }
+    }
+    return null;
+  }
+
+  /// Return the coordinates for the given [object].
+  Point<int> getObjectCoordinates(final RoomObject object) {
+    for (final MapEntry(key: coordinates, value: roomObject)
+        in _roomObjects.entries) {
+      if (roomObject == object) {
+        return coordinates;
+      }
+    }
+    throw StateError('Could not find object ${object.name} in $room.');
+  }
 }
