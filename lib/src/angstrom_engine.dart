@@ -173,9 +173,10 @@ abstract class AngstromEngine {
         return stopPlayerMoving();
       }
     }
+    final oldObject = getRoomObject(playerCoordinates);
     _setPlayerCoordinates(newCoordinates);
+    oldObject?.onLeave?.call(this);
     newSurface.onMove?.call(this);
-    getRoomObject(playerCoordinates)?.onLeave?.call(this);
     getRoomObject(newCoordinates)?.onApproach?.call(this);
   }
 
