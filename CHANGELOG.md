@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Fix object ambiances when entering rooms.
+- Fix the way 3d sounds are handled by `AngstromEventHandler`.
+
 ## 0.2.2
 
 - Upgraded dependencies.
