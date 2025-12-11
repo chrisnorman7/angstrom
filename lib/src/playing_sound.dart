@@ -6,7 +6,7 @@ class PlayingSound {
   /// Create an instance.
   const PlayingSound({required this.reference, required this.handle});
 
-  /// The sound refernece.
+  /// The sound reference.
   final SoundReference reference;
 
   /// The sound handle.

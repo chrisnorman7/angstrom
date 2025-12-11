@@ -161,39 +161,19 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         _roomObjectAmbianceSoundHandles[i] = null;
       } else {
         if (handle == null) {
-          late final AudioSource source;
-          final h = await context.playSound(
-            widget.getSound(
-              soundReference: soundReference.path.asSoundReference(volume: 0.0),
-              destroy: false,
-              loadMode: LoadMode.disk,
-              looping: true,
-              position: SoundPosition3d(
-                coordinates.x.toDouble(),
-                0,
-                coordinates.y.toDouble(),
-              ),
-            ),
-            onSourceLoad: (final s) {
-              source = s;
-            },
-          );
-          h.setMinMaxDistance(0, ambiance.ambianceMaxDistance.toDouble());
-          updateSound(
-            source: source,
-            handle: h,
-            soundCoordinates: coordinates,
-            volume: ambiance.soundReference.volume,
+          final sound = await playSoundAt(
+            soundReference: soundReference,
+            coordinates: ambiance.coordinates,
             maxDistance: ambiance.ambianceMaxDistance,
+            destroy: false,
+            loadMode: LoadMode.disk,
+            looping: true,
           );
           if (mounted && _roomObjectAmbiancesLastUpdate == timestamp) {
             unawaited(_roomObjectAmbianceSoundHandles[i]?.handle?.stop());
-            _roomObjectAmbianceSoundHandles[i] = AudioSourceAndHandle(
-              source: source,
-              handle: h,
-            );
+            _roomObjectAmbianceSoundHandles[i] = sound;
           } else {
-            return unawaited(h.stop());
+            return unawaited(sound.handle.stop());
           }
         } else {
           updateSound(
@@ -424,6 +404,7 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
             (final objectCoordinates) => objectCoordinates.coordinates,
           ),
         );
+        unawaited(updateRoomObjectAmbiances());
         break;
       case MoveInterval():
         _moveInterval = event.moveInterval;
@@ -433,35 +414,13 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
         final distance = playerCoordinates.distanceTo(point);
         if (distance <= event.maxDistance) {
           final reference = event.reference;
-          final walls = _countOccludingWalls(playerCoordinates, point);
-          late final AudioSource source;
-          final handle = await context.playSound(
-            widget.getSound(
-              soundReference: reference.path.asSoundReference(
-                volume: _occludedVolume(
-                  distance: distance,
-                  fullVolume: reference.volume,
-                  occludingWalls: walls,
-                  maxDistance: event.maxDistance,
-                ),
-              ),
+          unawaited(
+            playSoundAt(
+              soundReference: reference,
+              coordinates: point,
+              maxDistance: event.maxDistance,
               destroy: true,
-              position: SoundPosition3d(
-                event.x,
-                event.z, // Take into account default listener orientation.
-                event.y, // Take into account the default listener orientation.
-              ),
             ),
-            onSourceLoad: (final s) {
-              source = s;
-            },
-          );
-          updateSound(
-            source: source,
-            handle: handle,
-            soundCoordinates: event.coordinates,
-            volume: reference.volume,
-            maxDistance: event.maxDistance,
           );
         }
         break;
@@ -611,4 +570,53 @@ class AngstromEventHandlerState extends State<AngstromEventHandler> {
 
   /// Returns `true` if there is a wall at [p].
   bool _isWall(final Point<int> p) => _wallCoordinates.contains(p);
+
+  /// Play [soundReference] at [coordinates].
+  Future<AudioSourceAndHandle> playSoundAt({
+    required final SoundReference soundReference,
+    required final Point<int> coordinates,
+    required final int maxDistance,
+    required final bool destroy,
+    final LoadMode loadMode = LoadMode.memory,
+    final bool looping = false,
+    final Duration loopingStart = Duration.zero,
+    final bool paused = false,
+    final double relativePlaySpeed = 1.0,
+  }) async {
+    final distance = playerCoordinates.distanceTo(coordinates);
+    final numberOfWalls = _countOccludingWalls(playerCoordinates, coordinates);
+    final volume = _occludedVolume(
+      distance: distance,
+      fullVolume: soundReference.volume,
+      occludingWalls: numberOfWalls,
+      maxDistance: maxDistance,
+    );
+    late final AudioSource source;
+    final handle = await context.playSound(
+      widget.getSound(
+        soundReference: soundReference.path.asSoundReference(volume: volume),
+        destroy: destroy,
+        loadMode: loadMode,
+        looping: looping,
+        loopingStart: loopingStart,
+        paused: paused,
+        position: SoundPosition3d(
+          coordinates.x.toDouble(),
+          0,
+          coordinates.y.toDouble(),
+        ),
+        relativePlaySpeed: relativePlaySpeed,
+      ),
+      onSourceLoad: (final s) {
+        source = s;
+      },
+    );
+    handle.setMinMaxDistance(0, maxDistance.toDouble());
+    maybeFilterSource(
+      source: source,
+      handle: handle,
+      numberOfWalls: numberOfWalls,
+    );
+    return AudioSourceAndHandle(source: source, handle: handle);
+  }
 }
