@@ -118,8 +118,6 @@ class GameControlsState extends State<GameControls> {
           widget.getExamineObjectOrdering(),
         ),
       ),
-    ];
-    defaultShortcuts.add(
       GameShortcut(
         title: 'Show shortcut help',
         shortcut: GameShortcutsShortcut.slash,
@@ -127,12 +125,12 @@ class GameControlsState extends State<GameControls> {
         onStart: (final innerContext) async {
           engine.pause();
           await innerContext.pushWidgetBuilder(
-            (_) => GameShortcutsHelpScreen(shortcuts: defaultShortcuts),
+            (_) => const GameShortcutsHelpScreen(),
           );
           engine.unpause();
         },
       ),
-    );
+    ];
     return GameShortcuts(
       shortcuts:
           widget.gameShortcutsBuilder?.call(context, defaultShortcuts) ??
