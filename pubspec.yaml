@@ -11,7 +11,7 @@ dependencies:
   backstreets_widgets: ^0.40.0
   flutter:
     sdk: flutter
-  flutter_audio_games: ^0.51.0
+  flutter_audio_games: ^0.51.2
   flutter_soloud: ^3.4.7
   json_annotation: ^4.9.0
   meta: ^1.17.0
