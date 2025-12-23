@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5
+
+- Upgraded dependencies.
+
 ## 0.2.4
 
 - Updated dependencies.
