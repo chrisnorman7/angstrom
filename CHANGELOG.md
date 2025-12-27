@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7
+
+- Show all shortcuts in the help screen.
+
 ## 0.2.6
 
 - Fixed a typo.
