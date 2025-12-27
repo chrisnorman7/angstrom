@@ -421,10 +421,12 @@ abstract class AngstromEngine {
     final lastIndex = _lastObjectIndex;
     final RoomObject object;
     if (lastIndex == null || lastIndex >= objects.length) {
+      _lastObjectIndex = 0;
       object = objects.first;
     } else {
       final index = (lastIndex + direction) % objects.length;
       object = objects[index];
+      _lastObjectIndex = index;
     }
     _controller.add(
       RoomObjectReference(

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6
+
+- Fixed a typo.
+- Fixed examining objects.
+
 ## 0.2.5
 
 - Upgraded dependencies.

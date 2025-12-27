@@ -111,7 +111,7 @@ class GameControlsState extends State<GameControls> {
         ),
       ),
       GameShortcut(
-        title: 'Examine previous objects',
+        title: 'Examine previous object',
         shortcut: GameShortcutsShortcut.bracketLeft,
         onStart: (final innerContext) => engine.examinePreviousObject(
           widget.getExamineObjectDistance(),
