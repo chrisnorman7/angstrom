@@ -11,7 +11,7 @@ abstract class AngstromEngine {
   AngstromEngine({
     required this.playerCharacter,
     this.musicFadeIn = const Duration(milliseconds: 500),
-    this.musicFadeOut = const Duration(seconds: 3),
+    this.musicFadeOut = Duration.zero,
   }) : _tiles = HashMap(),
        _roomObjects = HashMap(),
        _playerLastMoved = 0,

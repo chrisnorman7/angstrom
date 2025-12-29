@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8
+
+- Music fade out defaults to 0 so that ambiances don't hang around when switching rooms.
+
 ## 0.2.7
 
 - Show all shortcuts in the help screen.
